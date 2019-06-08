@@ -92,25 +92,24 @@ def main():
         elif res_type == "book":
             symbol = res_from_exchange["symbol"]
 
+            buy_res = res_from_exchange["buy"]
+            sell_res = res_from_exchange["sell"]
+
+            buy_prices = []
+            buy_amounts = []
+
+            sell_prices = []
+            sell_amounts = []
+
+            for order in buy_res:
+                buy_prices.append(order[0])
+                buy_amounts.append(order[1])
+
+            for order in sell_res:
+                sell_prices.append(order[0])
+                sell_amounts.append(order[1])
+
             if symbol == "BOND":
-
-                buy_res= res_from_exchange["buy"]
-                sell_res = res_from_exchange["sell"]
-
-                buy_prices = []
-                buy_amounts = []
-
-                sell_prices = []
-                sell_amounts = []
-
-                for order in buy_res:
-                    buy_prices.append(order[0])
-                    buy_amounts.append(order[1])
-
-                for order in sell_res:
-                    sell_prices.append(order[0])
-                    sell_amounts.append(order[1])
-
                 order_data = bondtrade(np.array(sell_prices), np.array(sell_amounts), np.array(buy_prices), np.array(buy_amounts), current_bonds, total_orders_buy-success_orders_buy, total_orders_sell-success_orders_sell)
                 orders = order_data[0].tolist()
 
@@ -128,7 +127,8 @@ def main():
                     print(build)
                     to_send.append(build)
             else:
-                orders = pennying(symbol, np.array(sell_prices), np.array(buy_prices), total_orders_buy-success_orders_buy, total_orders_sell-success_orders_sell)
+                order_data = pennying(symbol, np.array(sell_prices), np.array(buy_prices), total_orders_buy-success_orders_buy, total_orders_sell-success_orders_sell)
+                orders = order_data.tolist()
                 for order in orders:
                     if order[0] == "buy":
                         build = {"type": "add", "order_id": order_id, "symbol": symbol, "dir": "BUY", "price": int(order[1]), "size": int(order[2])}
