@@ -42,6 +42,6 @@ def bondtrade(sellprc, sellamt, buyprc, buyamt, curhold, fill=0):
         amt = min(buyamt[i], abs(shortlim-curhold))
         amt = max(0, amt)
         orders = np.append(orders, np.array([['sell', buyprc[i], amt]])).reshape(-3,3)
-    orders = np.append(orders, np.array([['sell', statsell, 10]])).reshape(-3,3)
-    orders = np.append(orders, np.array([['buy', statbuy, 10]])).reshape(-3,3)
+    orders = np.append(orders, np.array([['sell', statsell, 1]])).reshape(-3,3)
+    orders = np.append(orders, np.array([['buy', statbuy, 1]])).reshape(-3,3)
     return [orders, newbuyval, newsellval]
