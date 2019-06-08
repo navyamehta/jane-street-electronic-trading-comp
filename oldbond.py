@@ -1,3 +1,8 @@
+#This strategy assumes that the market behaves rationally and thus you cannot have sell orders below an arbitrary
+#acceptable limit and also have buy orders above. Thus, this code currently does not run against itself, and instead
+#only reads the best clearing price in the market. It executes orders to perfectly match amounts on the list as
+#it does not currently have cancel functionality
+
 import numpy as np
 import pandas as pd
 
