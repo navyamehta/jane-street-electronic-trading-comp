@@ -36,6 +36,6 @@ def micromacd (sellprc, buyprc, curhold, incbuy, incsell):
         reading12ema = np.insert(reading12ema, 0, newval12)
         micromacd = reading12ema[0] - reading20ema[0]
         if micromacd > 0.15:
-            return np.array([['buy', min(sellprc), int(curhold/3)]])
+            return np.array([['buy', sellprc, int(curhold/3)]])
         if micromacd < -0.15:
-            return np.array([['sell', max(buyprc), int(curhold/3)]])
+            return np.array([['sell', buyprc, int(curhold/3)]])
