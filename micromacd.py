@@ -9,7 +9,7 @@ avgprc = np.array([])
 reading12ema = np.zeros(11)
 reading20ema = np.zeros(19)
 
-def micromacd (sellprc, buyprc, curhold, incbuy, incsell):
+def micromacd (sellprc, buyprc, curhold):
     avgprc = np.insert(avgprc, 0, sum([sellprc, buyprc])/2)
     if len(avgprc) < 12:
         return
