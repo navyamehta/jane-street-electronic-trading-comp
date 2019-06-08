@@ -16,7 +16,8 @@ from bondtrade import bondtrade
 from pennying import pennying
 from math import ceil
 
-from etfconvert import etfcvrt
+from etfconvert import etfcvrt, oppcvrt
+from adrconversion import buy_adr
 
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
@@ -134,13 +135,15 @@ def main():
     hello = False
 
     holdings = {}
-    lag_orders = 200
+    lag_orders = 1
 
     avgprc_all = {}
     reading12ema_all = {}
     reading20ema_all = {}
 
     latest = {}
+
+    store_value = []
 
     counter = 0
     while True:
@@ -160,7 +163,7 @@ def main():
                 reading12ema_all[symbol["symbol"]] = np.zeros(11)
                 reading20ema_all[symbol["symbol"]] = np.zeros(19)
                 holdings[symbol["symbol"]] = symbol["position"]
-            print(holdings)
+            # print(holdings)
             time.sleep(TIMEOUT)
         elif res_type == "open":
             pass
@@ -199,23 +202,40 @@ def main():
 
                 latest[symbol] = [buy_prices, buy_amounts, sell_prices, sell_amounts]
 
-                if "BOND" in latest and "GS" in latest and "MS" in latest and "WFC" in latest and "XLF" in latest:
-                    orders_data = etfcvrt(np.array(latest["BOND"][2]), np.array(latest["BOND"][3]), np.array(latest["GS"][2]), np.array(latest["GS"][3]), np.array(latest["MS"][2]), latest["MS"][3], np.array(latest["WFC"][2]), np.array(latest["WFC"][3]), np.array(latest["XLF"][0]), np.array(latest["XLF"][1]))
-                    if len(orders_data) > 0:
-                        orders = order_data.tolist()
-                        for order in orders:
-                            if order[0] == "buy":
-                                build = {"type": "add", "order_id": order_id, "symbol": order[3], "dir": "BUY", "price": int(order[1]), "size": int(order[2])}
-                                total_orders_buy += 1
-                            elif order[0] == "sell":
-                                build = {"type": "add", "order_id": order_id, "symbol": order[3], "dir": "SELL", "price": int(order[1]), "size": int(order[2])}
-                                total_orders_sell += 1
-                            elif order[0] == "convert":
-                                build = {"type": "convert", "order_id": order_id, "symbol": order[1], "dir": "BUY", "size": order[3]}
-                                total_orders_cancel += 1
-                            # print(build)
-                            to_send[order_id] = build
-                            order_id += 1
+                # if "BOND" in latest and "GS" in latest and "MS" in latest and "WFC" in latest and "XLF" in latest:
+                #     orders_data = etfcvrt(np.array(latest["BOND"][2]), np.array(latest["BOND"][3]), np.array(latest["GS"][2]), np.array(latest["GS"][3]), np.array(latest["MS"][2]), np.array(latest["MS"][3]), np.array(latest["WFC"][2]), np.array(latest["WFC"][3]), np.array(latest["XLF"][0]), np.array(latest["XLF"][1]))
+                #     if len(orders_data) > 0:
+                #         orders = list(order_data)
+                #         for order in orders:
+                #             if order[0] == "buy":
+                #                 build = {"type": "add", "order_id": order_id, "symbol": order[3], "dir": "BUY", "price": int(order[1]), "size": int(order[2])}
+                #                 total_orders_buy += 1
+                #             elif order[0] == "sell":
+                #                 build = {"type": "add", "order_id": order_id, "symbol": order[3], "dir": "SELL", "price": int(order[1]), "size": int(order[2])}
+                #                 total_orders_sell += 1
+                #             elif order[0] == "convert":
+                #                 build = {"type": "convert", "order_id": order_id, "symbol": order[1], "dir": "BUY", "size": order[3]}
+                #                 total_orders_cancel += 1
+                #             # print(build)
+                #             to_send[order_id] = build
+                #             order_id += 1
+
+                #     orders_data = oppcvrt(np.array(latest["BOND"][0]), np.array(latest["BOND"][1]), np.array(latest["GS"][0]), np.array(latest["GS"][1]), np.array(latest["MS"][0]), np.array(latest["MS"][1]), np.array(latest["WFC"][0]), np.array(latest["WFC"][1]), np.array(latest["XLF"][2]), np.array(latest["XLF"][3]))
+                #     if len(orders_data) > 0:
+                #         orders = list(order_data)
+                #         for order in orders:
+                #             if order[0] == "buy":
+                #                 build = {"type": "add", "order_id": order_id, "symbol": order[3], "dir": "BUY", "price": int(order[1]), "size": int(order[2])}
+                #                 total_orders_buy += 1
+                #             elif order[0] == "sell":
+                #                 build = {"type": "add", "order_id": order_id, "symbol": order[3], "dir": "SELL", "price": int(order[1]), "size": int(order[2])}
+                #                 total_orders_sell += 1
+                #             elif order[0] == "convert":
+                #                 build = {"type": "convert", "order_id": order_id, "symbol": order[1], "dir": "SELL", "size": order[3]}
+                #                 total_orders_cancel += 1
+                #             # print(build)
+                #             to_send[order_id] = build
+                #             order_id += 1
 
                 highest_id = -1
                 highest_buy = 0
@@ -247,6 +267,26 @@ def main():
                         order_id += 1
                         # to_send.append(build)
                 else:
+                    if symbol == "VALE":
+                        store_value = [sell_prices, sell_amounts, holdings[symbol]]
+                    elif symbol == "VALBZ":
+                        if store_value:
+                            orders = buy_adr(store_value[0], store_value[1], buy_prices, buy_amounts, store_value[2])
+                            if orders:
+                                for order in orders:
+                                    if order[0] == "buy":
+                                        build = {"type": "add", "order_id": order_id, "symbol": order[3], "dir": "BUY", "price": int(order[1]), "size": int(order[2])}
+                                        total_orders_buy += 1
+                                    elif order[0] == "sell":
+                                        build = {"type": "add", "order_id": order_id, "symbol": symbol, "dir": "SELL", "price": int(order[1]), "size": int(order[2])}
+                                        total_orders_sell += 1
+                                    elif order[0] == "convert":
+                                        build = {"type": "convert", "order_id": order_id, "symbol": order[1], "dir": order[2], "size": int(order[3])}
+                                # print(build)
+                                to_send[order_id] = build
+                                order_id += 1
+                            time.sleep(TIMEOUT)
+
                     order_data = pennying(symbol, np.array(sell_prices), np.array(buy_prices), holdings[symbol], total_orders_buy-success_orders_buy, total_orders_sell-success_orders_sell)
                     orders = order_data.tolist()
                     for order in orders:
@@ -281,7 +321,7 @@ def main():
                                 build = {"type": "add", "order_id": order_id, "symbol": symbol, "dir": "SELL", "price": int(float(order[1])), "size": int(float(order[2]))}
                                 total_orders_sell += 1
                             elif order[0] == "cancel":
-                                build = {"type": "cancel", "order_id": int(order[2])}
+                                build = {"type": "cancel", "order_id": int(float(order[2]))}
                                 total_orders_cancel += 1
                             # print(build)
                             to_send[order_id] = build
@@ -292,19 +332,25 @@ def main():
                 success_orders_buy += 1
             elif res_from_exchange["dir"] == "SELL":
                 success_orders_sell += 1
-            print(res_from_exchange)
-            del to_send[res_from_exchange["order_id"]]
+            # print(res_from_exchange)
+            if res_from_exchange["order_id"] in to_send:
+                del to_send[res_from_exchange["order_id"]]
             # write_to_exchange(exchange, {"type": "hello", "team": team_name.upper()})
             # hello = True
             time.sleep(TIMEOUT)
         elif res_type == "reject":
-            print(res_from_exchange)
+            # print(res_from_exchange)
+            working_id += 1
+            trying = False
             time.sleep(TIMEOUT)
         elif res_type == "error":
+            working_id += 1
+            trying = False
             print(res_from_exchange)
             time.sleep(TIMEOUT)
         elif res_type == "ack":
-            print(res_from_exchange)
+            # print(res_from_exchange)
+            # if res_from_exchange["order_id"] in to_send:
             if to_send[res_from_exchange["order_id"]]["dir"] == "BUY":
                 exec_orders_buy += 1
             elif to_send[res_from_exchange["order_id"]]["dir"] == "SELL":
@@ -313,28 +359,30 @@ def main():
             trying = False
             time.sleep(TIMEOUT)
 
-        print("--------------------")
+        # print("--------------------")
 
-        print("TOTAL ORDERS BUY:")
-        print(total_orders_buy)
-        print("EXEC ORDERS BUY:")
-        print(exec_orders_buy)
-        print("SUCCESS ORDERS BUY:")
-        print(success_orders_buy)
+        # print("TOTAL ORDERS BUY:")
+        # print(total_orders_buy)
+        # print("EXEC ORDERS BUY:")
+        # print(exec_orders_buy)
+        # print("SUCCESS ORDERS BUY:")
+        # print(success_orders_buy)
 
-        print("--------------------")
-        print("TOTAL ORDERS SELL:")
-        print(total_orders_sell)
-        print("EXEC ORDERS SELL:")
-        print(exec_orders_sell)
-        print("SUCCESS ORDERS SELL:")
-        print(success_orders_sell)
+        # print("--------------------")
+        # print("TOTAL ORDERS SELL:")
+        # print(total_orders_sell)
+        # print("EXEC ORDERS SELL:")
+        # print(exec_orders_sell)
+        # print("SUCCESS ORDERS SELL:")
+        # print(success_orders_sell)
 
-        print("--------------------")
+        # print("--------------------")
 
-        print("TOTAL ORDERS CANCEL:")
-        print(total_orders_cancel)
-
+        # print("TOTAL ORDERS CANCEL:")
+        # print(total_orders_cancel)
+        # print(to_send)
+        # for key, value in to_send.iteritems():
+        #     write_to_exchange(exchange, value)
         if working_id == 0:
             if to_send and not trying and not hello:
                 write_to_exchange(exchange, to_send[working_id])
@@ -345,7 +393,7 @@ def main():
                 trying = True
         hello = False
 
-        print("\n\n")
+        # print("\n\n")
 
 
 if __name__ == "__main__":

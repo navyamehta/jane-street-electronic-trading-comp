@@ -7,19 +7,15 @@
 
 import pandas as pd
 import numpy as np
-import time
 
 def cvrt(sellprc, sellamt, num):
-    # print(sellprc)
-    # print(sellamt)
-    # time.sleep(5)
     sellprc = sellprc.repeat(sellamt)
     sellprc = pd.Series(sellprc).sort_values().cumsum().reset_index(drop=True)
     val = pd.Series(np.arange(sum(sellamt)))
     sellprc = sellprc - sellprc.where((val+1) % num == 0).shift(1).ffill().fillna(0)
     sellprc = sellprc.where((val+1) % num == 0).dropna().values
     sellprc = sellprc/num
-    return sellprc.astype('float64').astype('int')
+    return sellprc
 
 
 def etfcvrt(bondsellprc, bondsellamt, gssellprc, gssellamt, mssellprc, mssellamt, wfcsellprc, wfcsellamt, etfbuyprc, etfbuyamt):
@@ -41,12 +37,29 @@ def etfcvrt(bondsellprc, bondsellamt, gssellprc, gssellamt, mssellprc, mssellamt
         etffairprc[i] = 3 * bondcvrt[i] + 2 * gscvrt[i] + 3 * mscvrt[i] + 2 * wfccvrt[i]
     etffairprc = etffairprc/10
     etffairprc = etffairprc[etffairprc < buycvrt].astype('float64')
-    print(sum(buycvrt))
-    print(sum(etffairprc))
     if (len(etffairprc) > 0) & (sum(etffairprc) + 11 < sum(buycvrt)):
         orders = np.array([['buy', min(bondsellprc), len(etffairprc) * 3, 'BOND'], ['buy', min(gssellprc), len(etffairprc) * 2, 'GS'],
                           ['buy', min(mssellprc), len(etffairprc) * 3, 'MS'], ['buy', min(wfccvrt), len(etffairprc) * 2, 'WFC'],
-                          ['convert', 'XLF', 'buy', len(etffairprc) * 10], ['sell', max(etfbuyprc), len(etffairprc) * 10, 'XLF']])
+                          ['convert', 'XLF', 'BUY', len(etffairprc) * 10]])
+        return orders
+    else:
+        return []
+
+
+def oppcvrt(bondbuyprc, bondbuyamt, gsbuyprc, gsbuyamt, msbuyprc, msbuyamt, wfcbuyprc, wfcbuyamt, etfsellprc, etfsellamt):
+    bondprc = max(bondbuyprc)
+    gsprc = max(gsbuyprc)
+    msprc = max(msbuyprc)
+    wfcprc = max(wfcbuyprc)
+    etfder = (3 * bondprc + 2 * gsprc + 3 * msprc + 2 * wfcprc)/ 10
+    buycvrt = cvrt(etfsellprc, etfsellamt, 10)
+    print(buycvrt)
+    print(etfder)
+    buycvrt = buycvrt[buycvrt < etfder]
+    if (len(buycvrt) > 0) & (sum(buycvrt) + 11 < etfder * len(buycvrt)):
+        orders = np.array([['buy', min(etfsellprc), len(buycvrt) * 10, 'XLF'], ['convert', 'XLF', 'SELL', len(buycvrt) * 10],
+                           ['sell', bondprc, len(buycvrt) * 3, 'BOND'], ['sell', gsprc, len(buycvrt) * 2, 'GS'],
+                          ['sell', msprc, len(buycvrt) * 3, 'MS'], ['buy', wfcprc, len(buycvrt) * 2, 'WFC']])
         return orders
     else:
         return []

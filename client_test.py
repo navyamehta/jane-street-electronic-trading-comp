@@ -84,7 +84,7 @@ def main():
             res_from_exchange = read_from_exchange(exchange)
         except:
             continue
-        print("The exchange replied:", res_from_exchange, file=sys.stderr)
+        # print("The exchange replied:", res_from_exchange, file=sys.stderr)
         # print("\n")
 
         res_type = res_from_exchange["type"]
@@ -93,7 +93,7 @@ def main():
             symbols = res_from_exchange["symbols"]
             for symbol in symbols:
                 holdings[symbol["symbol"]] = symbol["position"]
-            print(holdings)
+            # print(holdings)
             time.sleep(TIMEOUT)
         elif res_type == "open":
             pass
@@ -131,25 +131,23 @@ def main():
                         if store_value:
                             orders = buy_adr(store_value[0], store_value[1], buy_prices, buy_amounts, store_value[2])
                             import pdb; pdb.set_trace()
-                            print(orders)
                             if orders:
                                 for order in orders:
                                     if order[0] == "buy":
-                                        build = {"type": "add", "order_id": order_id, "symbol": symbol, "dir": "BUY", "price": int(order[1]), "size": int(order[2])}
+                                        build = {"type": "add", "order_id": order_id, "symbol": order[3], "dir": "BUY", "price": int(order[1]), "size": int(order[2])}
                                         total_orders_buy += 1
                                     elif order[0] == "sell":
                                         build = {"type": "add", "order_id": order_id, "symbol": symbol, "dir": "SELL", "price": int(order[1]), "size": int(order[2])}
                                         total_orders_sell += 1
+                                    elif order[0] == "convert":
+                                        build = {"type": "convert", "order_id": order_id, "symbol": order[1], "dir": order[2], "size": order[3]}
+                                print(build)
                                 to_send[order_id] = build
                                 order_id += 1
                             time.sleep(TIMEOUT)
 
         elif res_type == "fill":
             if res_from_exchange["dir"] == "BUY":
-                if res_from_exchange["symbol"] == "VALE":
-                    build_convert = {"type": "convert", "order_id": res_from_exchange["order_id"], "symbol": "VALE", "dir": "SELL", "size": holdings["VALE"]}
-                    order_id += 1
-                    to_send[order_id] = build_convert
                 success_orders_buy += 1
             elif res_from_exchange["dir"] == "SELL":
                 success_orders_sell += 1
@@ -170,23 +168,23 @@ def main():
             trying = False
             time.sleep(TIMEOUT)
 
-        # print("--------------------")
+        print("--------------------")
 
-        # print("TOTAL ORDERS BUY:")
-        # print(total_orders_buy)
-        # print("SUCCESS ORDERS BUY:")
-        # print(success_orders_buy)
+        print("TOTAL ORDERS BUY:")
+        print(total_orders_buy)
+        print("SUCCESS ORDERS BUY:")
+        print(success_orders_buy)
 
-        # print("--------------------")
-        # print("TOTAL ORDERS SELL:")
-        # print(total_orders_sell)
-        # print("SUCCESS ORDERS SELL:")
-        # print(success_orders_sell)
+        print("--------------------")
+        print("TOTAL ORDERS SELL:")
+        print(total_orders_sell)
+        print("SUCCESS ORDERS SELL:")
+        print(success_orders_sell)
 
-        # print("--------------------")
+        print("--------------------")
 
-        # print("TOTAL ORDERS CANCEL:")
-        # print(total_orders_cancel)
+        print("TOTAL ORDERS CANCEL:")
+        print(total_orders_cancel)
 
         if working_id == 0:
             if to_send and not trying and not hello:

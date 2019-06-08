@@ -1,5 +1,5 @@
 #For simulation, we have an ETF that can be dismantled into its individual components. Here, we can leverage arbitrage, and
-#analyze whether we must build or break ETF packages. 
+#analyze whether we must build or break ETF packages.
 
 #The cvrt function converts sell prices and amounts into an num-value average, with num being its amount in the ETF package.
 #Subsequently, we compare the ETF fair price to its current trading price and use a boolean to decide whether it is profitable
@@ -7,8 +7,12 @@
 
 import pandas as pd
 import numpy as np
+import time
 
 def cvrt(sellprc, sellamt, num):
+    # print(sellprc)
+    # print(sellamt)
+    # time.sleep(5)
     sellprc = sellprc.repeat(sellamt)
     sellprc = pd.Series(sellprc).sort_values().cumsum().reset_index(drop=True)
     val = pd.Series(np.arange(sum(sellamt)))
@@ -26,7 +30,7 @@ def etfcvrt(bondsellprc, bondsellamt, gssellprc, gssellamt, mssellprc, mssellamt
     buycvrt = cvrt(etfbuyprc, etfbuyamt, 10)
     finallen = min(len(bondcvrt), len(gscvrt), len(mscvrt), len(wfccvrt), len(buycvrt))
     if finallen == 0:
-        return
+        return []
     bondcvrt = bondcvrt[:finallen]
     gscvrt = gscvrt[:finallen]
     mscvrt = mscvrt[:finallen]
@@ -35,5 +39,14 @@ def etfcvrt(bondsellprc, bondsellamt, gssellprc, gssellamt, mssellprc, mssellamt
     etffairprc = np.zeros(finallen)
     for i in range(0, finallen):
         etffairprc[i] = 3 * bondcvrt[i] + 2 * gscvrt[i] + 3 * mscvrt[i] + 2 * wfccvrt[i]
-    return etffairprc/10 < buycvrt
-    
+    etffairprc = etffairprc/10
+    etffairprc = etffairprc[etffairprc < buycvrt].astype('float64')
+    print(sum(buycvrt))
+    print(sum(etffairprc))
+    if (len(etffairprc) > 0) & (sum(etffairprc) + 11 < sum(buycvrt)):
+        orders = np.array([['buy', min(bondsellprc), len(etffairprc) * 3, 'BOND'], ['buy', min(gssellprc), len(etffairprc) * 2, 'GS'],
+                          ['buy', min(mssellprc), len(etffairprc) * 3, 'MS'], ['buy', min(wfccvrt), len(etffairprc) * 2, 'WFC'],
+                          ['convert', 'XLF', 'buy', len(etffairprc) * 10], ['sell', max(etfbuyprc), len(etffairprc) * 10, 'XLF']])
+        return orders
+    else:
+        return []

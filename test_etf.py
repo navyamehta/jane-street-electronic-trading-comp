@@ -203,7 +203,7 @@ def main():
                 if "BOND" in latest and "GS" in latest and "MS" in latest and "WFC" in latest and "XLF" in latest:
                     orders_data = etfcvrt(np.array(latest["BOND"][2]), np.array(latest["BOND"][3]), np.array(latest["GS"][2]), np.array(latest["GS"][3]), np.array(latest["MS"][2]), latest["MS"][3], np.array(latest["WFC"][2]), np.array(latest["WFC"][3]), np.array(latest["XLF"][0]), np.array(latest["XLF"][1]))
                     if len(orders_data) > 0:
-                        orders = order_data.tolist()
+                        orders = list(order_data)
                         for order in orders:
                             if order[0] == "buy":
                                 build = {"type": "add", "order_id": order_id, "symbol": order[3], "dir": "BUY", "price": int(order[1]), "size": int(order[2])}
