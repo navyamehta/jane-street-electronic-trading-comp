@@ -3,10 +3,10 @@
 import numpy as np
 import pandas as pd
 
-def bondtrade(sellprc, sellamt, buyprc, buyamt, curhold, fill=0):
+def bondtrade(sellprc, sellamt, buyprc, buyamt, curhold, incbuy, incsell, fill=0):
     accepprc = 1000
-    shortlim = -65
-    longlim = 65
+    shortlim = -80
+    longlim = 80
     orders = np.array([])
     if len(sellprc) == 0:
         statsell = 1002
@@ -37,11 +37,19 @@ def bondtrade(sellprc, sellamt, buyprc, buyamt, curhold, fill=0):
         amt = min(sellamt[i], abs(longlim-curhold))
         amt = max(0, amt)
         orders = np.append(orders, np.array([['buy', sellprc[i], amt]])).reshape(-3,3)
-    #Irrational orders clear automatically i.e. you cant have buy above acceplim and sell below acceplim
     for i in range(0, len(buyamt)):
         amt = min(buyamt[i], abs(shortlim-curhold))
         amt = max(0, amt)
         orders = np.append(orders, np.array([['sell', buyprc[i], amt]])).reshape(-3,3)
-    orders = np.append(orders, np.array([['sell', statsell, 1]])).reshape(-3,3)
-    orders = np.append(orders, np.array([['buy', statbuy, 1]])).reshape(-3,3)
+    if (curhold+incbuy)<(longlim-1):
+        orders = np.append(orders, np.array([['buy', statbuy, 1]])).reshape(-3,3)
+    if (curhold-incsell) > (shortlim+1):
+        orders = np.append(orders, np.array([['sell', statsell, 1]])).reshape(-3,3)
     return [orders, newbuyval, newsellval]
+
+
+def cancel(prc, amt, hold, fill):
+    if fill[0] < min(prc):
+        return np.array([])
+    else:
+        return np.array(['cancel', fill[0], fill[1]])
