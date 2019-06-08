@@ -9,13 +9,13 @@ def bondtrade(sellprc, sellamt, buyprc, buyamt, curhold, incbuy, incsell, fill=0
     longlim = 80
     orders = np.array([])
     if len(sellprc) == 0:
-        statsell = 1002
+        statsell = 1001
     else:
-        statsell = max(1002, min(sellprc) - 1)
+        statsell = max(1001, min(sellprc) - 1)
     if len(buyprc) == 0:
-        statbuy = 998
+        statbuy = 999
     else:
-        statbuy = min(998, max(buyprc) + 1)
+        statbuy = min(999, max(buyprc) + 1)
     sellamt = sellamt[sellprc < accepprc]
     sellprc = sellprc[sellprc < accepprc]
     buyamt = buyamt[buyprc > accepprc]
