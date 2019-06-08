@@ -1,6 +1,7 @@
 #This strategy assumes that the market behaves rationally and thus you cannot have sell orders below an arbitrary
-#acceptable limit and also have buy orders above that. In that regard, both for loops will not run in the code
-#under traditional market circumstances
+#acceptable limit and also have buy orders above. Thus, this code currently does not run against itself, and instead
+#only reads the best clearing price in the market. It executes orders to perfectly match amounts on the list as
+#it does not currently have cancel functionality
 def bondtrade(sellprc, sellamt, buyprc, buyamt, curhold):
     accepprc = 1000
     sellamt = sellamt[sellprc < accepprc]
