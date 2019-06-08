@@ -35,5 +35,15 @@ def etfcvrt(bondsellprc, bondsellamt, gssellprc, gssellamt, mssellprc, mssellamt
     etffairprc = np.zeros(finallen)
     for i in range(0, finallen):
         etffairprc[i] = 3 * bondcvrt[i] + 2 * gscvrt[i] + 3 * mscvrt[i] + 2 * wfccvrt[i]
-    return etffairprc/10 < buycvrt
+    etffairprc = etffairprc/10
+    etffairprc = etffairprc[etffairprc < buycvrt].astype('float64')
+    print(sum(buycvrt))
+    print(sum(etffairprc))
+    if (len(etffairprc) > 0) & (sum(etffairprc) + 11 < sum(buycvrt)):
+        orders = np.array([['buy', min(bondsellprc), len(etffairprc) * 3, 'bond'], ['buy', min(gssellprc), len(etffairprc) * 2, 'gs'], 
+                          ['buy', min(mssellprc), len(etffairprc) * 3, 'ms'], ['buy', min(wfccvrt), len(etffairprc) * 2, 'wfc'],
+                          ['convert', 'XLF', 'buy', len(etffairprc) * 10]])
+        return orders
+    else:
+        return []
     
