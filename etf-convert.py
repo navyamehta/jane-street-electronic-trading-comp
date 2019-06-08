@@ -15,7 +15,7 @@ def cvrt(sellprc, sellamt, num):
     sellprc = sellprc - sellprc.where((val+1) % num == 0).shift(1).ffill().fillna(0)
     sellprc = sellprc.where((val+1) % num == 0).dropna().values
     sellprc = sellprc/num
-    return sellprc.astype('float64').astype('int')
+    return sellprc
 
 
 def etfcvrt(bondsellprc, bondsellamt, gssellprc, gssellamt, mssellprc, mssellamt, wfcsellprc, wfcsellamt, etfbuyprc, etfbuyamt):
@@ -26,7 +26,7 @@ def etfcvrt(bondsellprc, bondsellamt, gssellprc, gssellamt, mssellprc, mssellamt
     buycvrt = cvrt(etfbuyprc, etfbuyamt, 10)
     finallen = min(len(bondcvrt), len(gscvrt), len(mscvrt), len(wfccvrt), len(buycvrt))
     if finallen == 0:
-        return
+        return []
     bondcvrt = bondcvrt[:finallen]
     gscvrt = gscvrt[:finallen]
     mscvrt = mscvrt[:finallen]
@@ -37,12 +37,29 @@ def etfcvrt(bondsellprc, bondsellamt, gssellprc, gssellamt, mssellprc, mssellamt
         etffairprc[i] = 3 * bondcvrt[i] + 2 * gscvrt[i] + 3 * mscvrt[i] + 2 * wfccvrt[i]
     etffairprc = etffairprc/10
     etffairprc = etffairprc[etffairprc < buycvrt].astype('float64')
-    print(sum(buycvrt))
-    print(sum(etffairprc))
     if (len(etffairprc) > 0) & (sum(etffairprc) + 11 < sum(buycvrt)):
-        orders = np.array([['buy', min(bondsellprc), len(etffairprc) * 3, 'BOND'], ['buy', min(gssellprc), len(etffairprc) * 2, 'GS'], 
-                          ['buy', min(mssellprc), len(etffairprc) * 3, 'MS'], ['buy', min(wfccvrt), len(etffairprc) * 2, 'WFC'],
-                          ['convert', 'XLF', 'buy', len(etffairprc) * 10], ['sell', max(etfbuyprc), len(etffairprc) * 10, 'XLF'])
+        orders = np.array([['buy', min(bondsellprc), len(etffairprc) * 3, 'bond'], ['buy', min(gssellprc), len(etffairprc) * 2, 'gs'], 
+                          ['buy', min(mssellprc), len(etffairprc) * 3, 'ms'], ['buy', min(wfccvrt), len(etffairprc) * 2, 'wfc'],
+                          ['convert', 'XLF', 'buy', len(etffairprc) * 10]])
+        return orders
+    else:
+        return []
+   
+
+def oppcvrt(bondbuyprc, bondbuyamt, gsbuyprc, gsbuyamt, msbuyprc, msbuyamt, wfcbuyprc, wfcbuyamt, etfsellprc, etfsellamt):
+    bondprc = max(bondbuyprc)
+    gsprc = max(gsbuyprc)
+    msprc = max(msbuyprc)
+    wfcprc = max(wfcbuyprc)
+    etfder = (3 * bondprc + 2 * gsprc + 3 * msprc + 2 * wfcprc)/ 10
+    buycvrt = cvrt(etfsellprc, etfsellamt, 10)
+    print(buycvrt)
+    print(etfder)
+    buycvrt = buycvrt[buycvrt < etfder]
+    if (len(buycvrt) > 0) & (sum(buycvrt) + 11 < etfder * len(buycvrt)):
+        orders = np.array([['buy', min(etfsellprc), len(buycvrt) * 10, 'xlf'], ['convert', 'XLF', 'sell', len(buycvrt) * 10],
+                           ['sell', bondprc, len(buycvrt) * 3, 'bond'], ['sell', gsprc, len(buycvrt) * 2, 'gs'], 
+                          ['sell', msprc, len(buycvrt) * 3, 'ms'], ['buy', wfcprc, len(buycvrt) * 2, 'wfc']])
         return orders
     else:
         return []
