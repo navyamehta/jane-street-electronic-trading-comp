@@ -5,59 +5,45 @@
 
 
 
-# 1 - Buying VALE ADR
+# 1 - Buying VALE ADR, converting to VALBZ,  selling VALBZ,
 
-def buy_adr(sellprc_adr, sellamt_adr, buyprc_adr, buyamt_adr, sellprc, sellamt, buyprc, buyamt, curhold_adr, curhold):
+from math import ceil
+
+def buy_adr(sellprc_adr, sellamt_adr, buyprc, buyamt, curhold_adr):
     conversion_cost = 10
     shortlim = -6
     longlim = 6
-    for i in range (0, len(sellamt_adr)):
-        if (sellprc_adr[i] > buyprc[i]):
-            spread = sellprc_adr[i] - buyprc[i]
-            if (spread * sellamt_adr[i] > 10):
-                amt_we_buy = max(ceiling(10/spread), min(sellamt_adr[i], abs(longlim-curhold)))
-                orders.append(['buy', sellprc_adr[i], amt_we_buy])
-
-# 2 - Selling VALE ADR
-
-def sell_adr(sellprc_adr, sellamt_adr, buyprc_adr, buyamt_adr, sellprc, sellamt, buyprc, buyamt, curhold_adr, curhold):
-    conversion_cost = 10
-    shortlim = -6
-    longlim = 6
-    for i in range (0, len(buyamt_adr)):               
-        if (buyprc_adr[i] > sellprc[i]):
-            spread = buyprc_adr[i] - sellprc[i]
-                if (spread * buyamt_adr[i] > 10):
-                    amt_we_sell = max(ceiling(10/spread), min(buyamt_adr[i], abs(longlim-curhold)))
-                    orders.append(['sell', buyprc_adr[i], amt_we_sell])
-
-# 3 - Buying VALBZ
-
-def buy_adr(sellprc_adr, sellamt_adr, buyprc_adr, buyamt_adr, sellprc, sellamt, buyprc, buyamt, curhold_adr, curhold):
-    for i in range (0, len(sellamt)):               
-        if (buyprc_adr[i] < sellprc[i]):
-            spread = sellprc[i] - buyprc_adr[i] 
-            if (spread * sellamt[i] > 10)
-                amt_we_buy = max(ceiling(10/spread), min(sellamt[i], abs(longlim-curhold)))
-                orders.append(['buy', sellprc[i], amt_we_buy])
-
-
-# 4 - Selling VALBZ
-def selling_adr(sellprc_adr, sellamt_adr, buyprc_adr, buyamt_adr, sellprc, sellamt, buyprc, buyamt, curhold_adr, curhold):
-    for i in range (0, len(buyamt)):
+    orders = []
+    for i in range (0, min(len(sellprc_adr), len(buyprc))):
         if (sellprc_adr[i] < buyprc[i]):
-            spread = buyprc[i] - sellprc_adr[i])
-            if (spread * buyamt[i] > 10)
-                amt_we_sell = max(ceiling(10/spread), min(buyamt[i], abs(longlim-curhold)))
+            spread = abs(sellprc_adr[i] - buyprc[i])
+            if (spread * sellamt_adr[i] > 10):
+                amt_we_buy = max(ceil(10/spread), min(sellamt_adr[i], abs(longlim-curhold_adr)))
+                orders.append(['buy', sellprc_adr[i], amt_we_buy])
+                # if (fill):
+                #     orders.append(['convert', "VALE", "SELL", curhold_adr_adr)
+                amt_we_sell = max(ceil(10/spread), min(buyamt[i], abs(longlim-curhold_adr)))
                 orders.append(['sell', buyprc[i], amt_we_sell])
 
-# 5 - Converting VALE to VALBZ and vice versa
-def conversion(curhold_adr, curhold)
-    for i in range (0, curhold_adr):
-            orders.append(['convert', "VALE", "SELL", curhold_ADR)
+    return orders
 
-    for i in range (0, curhold):
-            orders.append(['convert', "VALBZ", "BUY", curhold)
-                
+# 2 - Buying VALBZ, converting to VALE, selling VALE
 
-    
+# def sell_adr(sellprc_adr, sellamt_adr, buyprc_adr, buyamt_adr, sellprc, sellamt, buyprc, buyamt, curhold_adr_adr, curhold_adr, fill):
+#     conversion_cost = 10
+#     shortlim = -6
+#     longlim = 6
+#     for i in range (0, len(buyamt_adr)):
+#         if (sellprc[i] < buyprc[i]):
+#             spread = abs(buyprc_adr[i] - sellprc[i])
+#                 if (spread * buyamt_adr[i] > 10):
+#                     amt_we_buy = max(ceiling(10/spread), min(sellamt[i], abs(longlim-curhold_adr)))
+#                     orders.append(['buy', sellprc[i], amt_we_buy])
+#                     if (fill):
+#                         orders.append(['convert', "VALBZ", "BUY", curhold_adr)
+#                     amt_we_sell = max(ceiling(10/spread), min(buyamt_adr[i], abs(longlim-curhold_adr)))
+#                     orders.append(['sell', buyprc_adr[i], amt_we_sell])
+
+
+
+
