@@ -21,7 +21,7 @@ def micromacd (sellprc, buyprc, curhold):
         reading12ema = np.insert(reading12ema, 0, newval)
         return
     if len(avgprc) == 20:
-        reading20ema = reading20ema.insert(reading20ema, sum(avgprc)/20)
+        reading20ema = np.insert(reading20ema, 0, sum(avgprc)/20)
         newval = (avgprc[0] -  reading12ema[0]) * 2/13 + reading12ema[0]
         reading12ema = np.insert(reading12ema, 0, newval)
         micromacd = reading12ema[0] - reading20ema[0]
