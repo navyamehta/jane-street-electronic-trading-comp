@@ -9,6 +9,10 @@ import pandas as pd
 import numpy as np
 
 def cvrt(sellprc, sellamt, num):
+    r = np.vectorize(round)
+    t = np.vectorize(int)
+    sellamt = r(sellamt)
+    sellamt = t(sellamt)
     sellprc = sellprc.repeat(sellamt)
     sellprc = pd.Series(sellprc).sort_values().cumsum().reset_index(drop=True)
     val = pd.Series(np.arange(sum(sellamt)))
