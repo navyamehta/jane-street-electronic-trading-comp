@@ -8,11 +8,11 @@ def bondtrade(sellprc, sellamt, buyprc, buyamt, curhold, fill=0):
     shortlim = -65
     longlim = 65
     orders = np.array([])
-    if sellprc.empty:
+    if len(sellprc) == 0:
         statsell = 1002
     else:
         statsell = max(1002, min(sellprc) - 1)
-    if buyprc.empty:
+    if len(buyprc) == 0:
         statbuy = 998
     else:
         statbuy = min(998, max(buyprc) + 1)
@@ -30,8 +30,8 @@ def bondtrade(sellprc, sellamt, buyprc, buyamt, curhold, fill=0):
     newsellval += statsell * 10
     #We only need to nullify an inefficient old buy order, since if a sell order is below the lowest buy, it is still executed 
     #by the marketplace at aforementioned buy price
-    if isinstance(fill, list):
-        cnc = cancel(sellprc, sellamt, curhold, fill[0])
+    if isinstance(fill, list) & (len(sellprc) > 0):
+        cnc = cancel(sellprc, sellamt, curhold, fill)
         orders = np.append(orders, cnc).reshape(-3,3)
     for i in range(0, len(sellamt)):
         amt = min(sellamt[i], abs(longlim-curhold))
