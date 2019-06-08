@@ -13,6 +13,7 @@ import json
 import time
 import numpy as np
 from bondtrade import bondtrade
+from pennying import pennying
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # replace REPLACEME with your team name!
@@ -122,6 +123,18 @@ def main():
                         total_orders_buy += 1
                     elif order[0] == "sell":
                         build = {"type": "add", "order_id": order_id, "symbol": "BOND", "dir": "SELL", "price": int(order[1]), "size": int(order[2])}
+                        total_orders_sell += 1
+                    order_id += 1
+                    print(build)
+                    to_send.append(build)
+            else:
+                orders = pennying(symbol, np.array(sell_prices), np.array(buy_prices), total_orders_buy-success_orders_buy, total_orders_sell-success_orders_sell)
+                for order in orders:
+                    if order[0] == "buy":
+                        build = {"type": "add", "order_id": order_id, "symbol": symbol, "dir": "BUY", "price": int(order[1]), "size": int(order[2])}
+                        total_orders_buy += 1
+                    elif order[0] == "sell":
+                        build = {"type": "add", "order_id": order_id, "symbol": symbol, "dir": "SELL", "price": int(order[1]), "size": int(order[2])}
                         total_orders_sell += 1
                     order_id += 1
                     print(build)
